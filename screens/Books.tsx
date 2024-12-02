@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { BookList } from '../types/BookList';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { BookList, Book } from '../types/BookList';
+import { RootStackParamList } from '../App';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+type NavigationProps = NativeStackNavigationProp<RootStackParamList, 'Lista de Livros'>;
 
 const BooksScreen = () => {
   const [books, setBooks] = useState<BookList>([]);
+  const navigation = useNavigation<NavigationProps>();
 
   useEffect(() => {
-    // Carregando o arquivo JSON
     const fetchBooks = async () => {
       try {
         const booksData: BookList = require('../assets/books.json');
@@ -20,6 +24,14 @@ const BooksScreen = () => {
     fetchBooks();
   }, []);
 
+  const handleNavigateToDiscipline = (course: string) => {
+    const booksByDiscipline = books.filter((book) => book.course === course);
+    navigation.navigate('BooksByDiscipline', {
+      discipline: course,
+      books: booksByDiscipline,
+    });
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -28,6 +40,9 @@ const BooksScreen = () => {
         renderItem={({ item }) => (
           <View style={styles.bookItem}>
             <Text style={styles.bookTitle}>{item.title}</Text>
+            <TouchableOpacity onPress={() => handleNavigateToDiscipline(item.course)}>
+              <Text style={styles.bookCourse}>{item.course}</Text>
+            </TouchableOpacity>
             <Text>{item.author}</Text>
             <Text>{item.publisher}</Text>
             <Text>{item.year}</Text>
@@ -44,12 +59,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f0f0f0',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
   bookItem: {
     backgroundColor: '#fff',
     padding: 15,
@@ -64,6 +73,12 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  bookCourse: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#007bff',
     marginBottom: 5,
   },
 });
